@@ -1,3 +1,7 @@
+#
+# Sync configuration to have flux manage itself from the cur8s/flux repo.
+#
+
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
@@ -6,7 +10,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://github.com/cur8s/platform.git
+  url: https://github.com/cur8s/flux.git
   ref:
     branch: main
   sparseCheckout:
@@ -25,3 +29,34 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux
+
+#
+# Sync configuration to have flux manage itself from the cur8s/platform repo.
+#
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: platform
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://github.com/cur8s/platform.git
+  ref:
+    branch: main
+  sparseCheckout:
+    - dev/
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: platform
