@@ -3,7 +3,7 @@ set -euo pipefail
 
 NAMESPACE="flux-system"
 COMPONENTS_URL="https://raw.githubusercontent.com/cur8s/flux/refs/heads/main/releases/2.7/flux.yaml"
-CLUSTER_URL="https://raw.githubusercontent.com/cur8s/platform/refs/heads/main/dev/sync.yaml"
+CLUSTER_URL="https://raw.githubusercontent.com/cur8s/platform/refs/heads/main/releases/1.0/platform-snc.yaml"
 
 # ANSI escape code for bold text
 BOLD=$(tput bold)
