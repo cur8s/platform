@@ -15,11 +15,25 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cert-manager
+  name: cert-manager-crds
   namespace: flux-system
 spec:
   interval: 10m
-  path: releases/1.19/cert-manager.yaml
+  path: releases/1.19/crds
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: cert-manager
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-manager-deployment
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: releases/1.19/deployment
   prune: true
   wait: true
   sourceRef:
