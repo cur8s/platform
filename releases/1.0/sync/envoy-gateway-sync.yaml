@@ -10,7 +10,7 @@ spec:
   ref:
     branch: main
   sparseCheckout:
-    - releases/1.15
+    - releases/1.5
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
