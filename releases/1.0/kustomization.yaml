@@ -6,3 +6,4 @@ resources:
   - platform-sync.yaml
   - sync/cert-manager-sync.yaml
   - sync/envoy-gateway-sync.yaml
+  - sync/oci-test.yaml
