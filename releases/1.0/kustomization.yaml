@@ -5,3 +5,4 @@ resources:
   - sync/flux-sync.yaml
   - platform-sync.yaml
   - sync/cert-manager-sync.yaml
+  - sync/envoy-gateway-sync.yaml
