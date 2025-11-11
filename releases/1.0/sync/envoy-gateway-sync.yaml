@@ -1,4 +1,10 @@
----
+# =============================================================================
+# 🧩 Base Git Source
+# =============================================================================
+# Tracks the upstream Envoy Gateway repository. We use sparseCheckout to pull
+# only the release directory of interest (releases/1.5). This keeps the artifact
+# size minimal and the sync efficient.
+# =============================================================================
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
@@ -11,7 +17,41 @@ spec:
     branch: main
   sparseCheckout:
     - releases/1.5
+
 ---
+# =============================================================================
+# ⚙️ Artifact Generator
+# =============================================================================
+# Decomposes the GitRepository into an ExternalArtifact named `envoy-gateway`.
+# The ExternalArtifact exposes the contents of the selected release (releases/1.5)
+# as a top-level artifact.
+#
+# All downstream Kustomizations reference this artifact and use simplified paths.
+# =============================================================================
+apiVersion: source.extensions.fluxcd.io/v1beta1
+kind: ArtifactGenerator
+metadata:
+  name: envoy-gateway
+  namespace: flux-system
+spec:
+  sources:
+    - alias: repo
+      kind: GitRepository
+      name: envoy-gateway
+  artifacts:
+    - name: envoy-gateway
+      originRevision: "@repo"
+      copy:
+        - from: "@repo/releases/1.5/**"
+          to: "@artifact/"
+
+---
+# =============================================================================
+# 🔐 Cert Manager Certificates
+# =============================================================================
+# Applies the TLS certificates and issuers needed by the Envoy Gateway system.
+# This should reconcile before any CRDs or deployments that depend on TLS secrets.
+# =============================================================================
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -19,13 +59,20 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: releases/1.5/certs
+  path: ./certs
   prune: true
   wait: true
   sourceRef:
-    kind: GitRepository
+    kind: ExternalArtifact
     name: envoy-gateway
+
 ---
+# =============================================================================
+# 🧱 Gateway API CRDs
+# =============================================================================
+# Installs the Gateway API CRDs (Kubernetes standard types for Gateways,
+# HTTPRoutes, etc.) before deploying Envoy Gateway components that depend on them.
+# =============================================================================
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -33,13 +80,20 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: releases/1.5/crds/gateway-api
+  path: ./crds/gateway-api
   prune: true
   wait: true
   sourceRef:
-    kind: GitRepository
+    kind: ExternalArtifact
     name: envoy-gateway
+
 ---
+# =============================================================================
+# 🚦 Envoy Gateway CRDs
+# =============================================================================
+# Installs the custom resource definitions (CRDs) that define Envoy Gateway’s
+# own APIs and configuration objects. Must reconcile before the deployment.
+# =============================================================================
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -47,13 +101,25 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: releases/1.5/crds/envoy-gateway
+  path: ./crds/envoy-gateway
   prune: true
   wait: true
   sourceRef:
-    kind: GitRepository
+    kind: ExternalArtifact
     name: envoy-gateway
+
 ---
+# =============================================================================
+# 🚀 Envoy Gateway Deployment
+# =============================================================================
+# Deploys the Envoy Gateway controllers, pods, and supporting resources.
+# Depends on all prerequisite layers:
+#   - Certs (for TLS)
+#   - Gateway API CRDs
+#   - Envoy Gateway CRDs
+#
+# This layer brings the Envoy Gateway system to a functional state.
+# =============================================================================
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -65,9 +131,9 @@ spec:
     - name: envoy-gateway-crds
     - name: gateway-api-crds
     - name: envoy-gateway-certs
-  path: releases/1.5/deployment
+  path: ./deployment
   prune: true
   wait: true
   sourceRef:
-    kind: GitRepository
+    kind: ExternalArtifact
     name: envoy-gateway
