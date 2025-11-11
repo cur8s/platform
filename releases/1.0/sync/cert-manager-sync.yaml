@@ -33,6 +33,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
+  dependsOn:
+    - name: cert-manager-crds
   path: releases/1.19/deployment
   prune: true
   wait: true
