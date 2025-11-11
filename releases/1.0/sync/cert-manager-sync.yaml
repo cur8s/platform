@@ -41,3 +41,19 @@ spec:
   sourceRef:
     kind: GitRepository
     name: cert-manager
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: platform-ca-issuer
+  namespace: flux-system
+spec:
+  interval: 10m
+  dependsOn:
+    - name: cert-manager-deployment
+  path: releases/1.19/platform-issuer
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: cert-manager
