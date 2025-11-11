@@ -19,7 +19,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: releases/1.19
+  path: releases/1.19/cert-manager.yaml
   prune: true
   wait: true
   sourceRef:
